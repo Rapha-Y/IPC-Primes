@@ -18,10 +18,9 @@ int isprime(long int value) {
   long int factor = 2;
   int prime = 1;
   root = sqrtl(value);
-  while((factor <= root) && (prime)) { 
+  for(; (factor <= root) && (prime); factor++) {
     prime = fmod((double)value, (double)factor) > 0.0;
-		factor++;
-	}
+  }
   return prime;
 }
 
@@ -34,10 +33,8 @@ void quicksort(long int *primes, int first, int last) {
     i = first;
     j = last;
     while(i < j) { 
-      while(primes[i] <= primes[pivot] && i < last)
-        i++;
-      while(primes[j] > primes[pivot])
-        j--;
+      for(; primes[i] <= primes[pivot] && i < last; i++);
+      for(; primes[j] > primes[pivot]; j--);
       if(i < j) { 
         temp = primes[i];
         primes[i] = primes[j];
