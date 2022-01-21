@@ -3,9 +3,9 @@
 #include <math.h>
 #include <string.h>
 
-#define MAXNUM 100
+#define MAXNUM 2000
 #define MAXSTR 50
-#define MAXRESULTS 1000
+#define MAXRESULTS 4000000
 
 char firstHalf[MAXNUM][MAXSTR];
 char secondHalf[MAXNUM][MAXSTR];
