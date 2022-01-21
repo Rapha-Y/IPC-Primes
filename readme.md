@@ -1,0 +1,1 @@
+Optimization of a program via OMP.
