@@ -6,3 +6,4 @@ Optimization of a program via OMP.
 
 gcc primetest.c -o exec -lm
 
+./exec < gen.txt
