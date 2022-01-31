@@ -4,6 +4,6 @@ Optimization of a program via OMP.
 
 # Execution
 
-gcc primetest.c -o exec -lm
+mpicc primetest.c -o exec -lm
 
 ./exec < gen.txt

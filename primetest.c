@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <omp.h>
 
 #define MAXNUM 2000
 #define MAXSTR 50
 #define MAXRESULTS 4000000
+#define THREAD_NUM 1
 
 char firstHalf[MAXNUM][MAXSTR];
 char secondHalf[MAXNUM][MAXSTR];
@@ -18,6 +20,7 @@ int isprime(long int value) {
   long int factor = 2;
   int prime = 1;
   root = sqrtl(value);
+  #pragma omp parallel for private(factor) num_threads(THREAD_NUM)
   for(; (factor <= root) && (prime); factor++) {
     prime = fmod((double)value, (double)factor) > 0.0;
   }
@@ -33,7 +36,9 @@ void quicksort(long int *primes, int first, int last) {
     i = first;
     j = last;
     while(i < j) { 
+      #pragma omp parallel for private(i) num_threads(THREAD_NUM)
       for(; primes[i] <= primes[pivot] && i < last; i++);
+      #pragma omp parallel for private(j) num_threads(THREAD_NUM)
       for(; primes[j] > primes[pivot]; j--);
       if(i < j) { 
         temp = primes[i];
@@ -50,7 +55,7 @@ void quicksort(long int *primes, int first, int last) {
 }
 
 
-int main(int argc, char** argv) { 
+int main(int argc, char** argv) {
   FILE *primesFile;
   int i = 0, j = 0, numResults = 0;
   long int primeToTest;
@@ -72,6 +77,6 @@ int main(int argc, char** argv) {
 	  }
   quicksort(result, 0, numResults - 1);
   for(i = 0; i < numResults; i++)
-    printf("%ld\n", result[i]);	  
+    printf("%ld\n", result[i]);
   return 0;
 }
