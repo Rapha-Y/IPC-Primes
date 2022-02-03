@@ -1,30 +1,30 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
 #include <omp.h>
+#include <time.h>
 
 #define MAXNUM 2000
 #define MAXSTR 50
 #define MAXRESULTS 4000000
-#define THREAD_NUM 8
+#define THREAD_NUM 4
 
 char firstHalf[MAXNUM][MAXSTR];
 char secondHalf[MAXNUM][MAXSTR];
 char strToTest[MAXSTR];
-long int result[MAXRESULTS];
+long int testList[MAXRESULTS];
 int numPrimes = 0;
 
 int isprime(long int value) { 
-  long int root;
-  long int factor = 2;
-  int prime = 1;
-  root = sqrtl(value);
-  #pragma omp parallel for private(factor) num_threads(THREAD_NUM)
-  for(; (factor <= root) && (prime); factor++) {
-    prime = fmod((double)value, (double)factor) > 0.0;
+  int i;
+  if(value == 2 || value == 3){return 1;}
+  else if(value % 2 == 0 || value == 1){return 0;}
+  else{
+    for(i = 3; i * i <= value; i+=2){
+      if(value % i == 0){return 0;}
+    }
+    return 1;
   }
-  return prime;
 }
 
 void quicksort(long int *primes, int first, int last) { 
@@ -35,11 +35,11 @@ void quicksort(long int *primes, int first, int last) {
     pivot = first;
     i = first;
     j = last;
-    #pragma omp parallel for private(i, j) num_threads(THREAD_NUM)
+    //#pragma omp parallel for private(i, j) num_threads(THREAD_NUM)
     for(;i < j;) { 
-      #pragma omp parallel for private(i) num_threads(THREAD_NUM)
+      //#pragma omp parallel for private(i) num_threads(THREAD_NUM)
       for(; primes[i] <= primes[pivot] && i < last; i++);
-      #pragma omp parallel for private(j) num_threads(THREAD_NUM)
+      //#pragma omp parallel for private(j) num_threads(THREAD_NUM)
       for(; primes[j] > primes[pivot]; j--);
       if(i < j) { 
         temp = primes[i];
@@ -57,31 +57,44 @@ void quicksort(long int *primes, int first, int last) {
 
 
 int main(int argc, char** argv) {
+  float start;
+  start = omp_get_wtime();
   FILE *primesFile;
-  int i = 0, j = 0, numResults = 0;
+  int i = 0, j = 0, i_testList = 0;
   long int primeToTest;
   primesFile = stdin;
   fscanf(primesFile, "%d\n", &numPrimes);
-  #pragma omp parallel for private(i) num_threads(THREAD_NUM)
+  //#pragma omp parallel for private(i) num_threads(THREAD_NUM)
   for(i = 0; i < numPrimes; i++)
     fscanf(primesFile, "%s\n", firstHalf[i]);
-  #pragma omp parallel for private(i) num_threads(THREAD_NUM)
+  //#pragma omp parallel for private(i) num_threads(THREAD_NUM)
   for(i = 0; i < numPrimes; i++)
     fscanf(primesFile, "%s\n", secondHalf[i]);
   fclose(primesFile);
-  #pragma omp parallel for private(i, j) num_threads(THREAD_NUM)
-  for(i = 0; i < numPrimes; i++)
+  //#pragma omp parallel for private(i, j) num_threads(THREAD_NUM)
+  for(i = 0; i < numPrimes; i++){
 	  for(j = 0; j < numPrimes; j++) { 
-      strcpy(strToTest, firstHalf[i]);
-	    strcat(strToTest, secondHalf[j]);
-			primeToTest = atol(strToTest);
-			if(isprime(primeToTest)) { 
-        result[numResults++] = primeToTest;
-			}
+      sprintf(strToTest, "%s%s", firstHalf[i], secondHalf[j]);
+      testList[i_testList++] = atol(strToTest);
 	  }
-  quicksort(result, 0, numResults - 1);
+  }
+  quicksort(testList, 0, i_testList - 1);
+  int result[i_testList];
+  for(i = 0; i < i_testList; i++){
+    result[i] = 0;
+  }
   #pragma omp parallel for private(i) num_threads(THREAD_NUM)
-  for(i = 0; i < numResults; i++)
-    printf("%ld\n", result[i]);
+     for(i = 0; i < i_testList; i++){
+       result[i] = isprime(testList[i]);
+     }
+
+
+  for(i = 0; i < i_testList; i++){
+    if(result[i] == 1){
+      printf("%ld\n", testList[i]);
+    }
+  }
+
+  printf("Tempo %f\n", omp_get_wtime() - start);
   return 0;
 }
