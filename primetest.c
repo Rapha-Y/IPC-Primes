@@ -7,7 +7,7 @@
 #define MAXNUM 2000
 #define MAXSTR 50
 #define MAXRESULTS 4000000
-#define THREAD_NUM 1
+#define THREAD_NUM 8
 
 char firstHalf[MAXNUM][MAXSTR];
 char secondHalf[MAXNUM][MAXSTR];
@@ -56,16 +56,20 @@ void quicksort(long int *primes, int first, int last) {
 
 
 int main(int argc, char** argv) {
+  double start_time = omp_get_wtime();
   FILE *primesFile;
   int i = 0, j = 0, numResults = 0;
   long int primeToTest;
   primesFile = stdin;
   fscanf(primesFile, "%d\n", &numPrimes);
+  #pragma omp parallel for private(i) num_threads(THREAD_NUM)
   for(i = 0; i < numPrimes; i++)
     fscanf(primesFile, "%s\n", firstHalf[i]);
+  #pragma omp parallel for private(i) num_threads(THREAD_NUM)
   for(i = 0; i < numPrimes; i++)
     fscanf(primesFile, "%s\n", secondHalf[i]);
   fclose(primesFile);
+  #pragma omp parallel for private(i, j) num_threads(THREAD_NUM)
   for(i = 0; i < numPrimes; i++)
 	  for(j = 0; j < numPrimes; j++) { 
       strcpy(strToTest, firstHalf[i]);
@@ -76,7 +80,10 @@ int main(int argc, char** argv) {
 			}
 	  }
   quicksort(result, 0, numResults - 1);
+  #pragma omp parallel for private(i) num_threads(THREAD_NUM)
   for(i = 0; i < numResults; i++)
     printf("%ld\n", result[i]);
+  double end_time = omp_get_wtime();
+  printf("%f\n", end_time - start_time);
   return 0;
 }
