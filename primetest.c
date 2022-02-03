@@ -35,7 +35,8 @@ void quicksort(long int *primes, int first, int last) {
     pivot = first;
     i = first;
     j = last;
-    while(i < j) { 
+    #pragma omp parallel for private(i, j) num_threads(THREAD_NUM)
+    for(;i < j;) { 
       #pragma omp parallel for private(i) num_threads(THREAD_NUM)
       for(; primes[i] <= primes[pivot] && i < last; i++);
       #pragma omp parallel for private(j) num_threads(THREAD_NUM)
@@ -56,7 +57,6 @@ void quicksort(long int *primes, int first, int last) {
 
 
 int main(int argc, char** argv) {
-  double start_time = omp_get_wtime();
   FILE *primesFile;
   int i = 0, j = 0, numResults = 0;
   long int primeToTest;
@@ -83,7 +83,5 @@ int main(int argc, char** argv) {
   #pragma omp parallel for private(i) num_threads(THREAD_NUM)
   for(i = 0; i < numResults; i++)
     printf("%ld\n", result[i]);
-  double end_time = omp_get_wtime();
-  printf("%f\n", end_time - start_time);
   return 0;
 }
