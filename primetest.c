@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <omp.h>
 
-#define MAXNUM 100
+#define MAXNUM 2000
 #define MAXSTR 50
-#define MAXRESULTS 1000
+#define MAXRESULTS 4000000
+#define THREAD_NUM 8
 
 char firstHalf[MAXNUM][MAXSTR];
 char secondHalf[MAXNUM][MAXSTR];
@@ -54,7 +56,8 @@ void quicksort(long int *primes,int first,int last)
 
 
 int main(int argc,char** argv)
-{ FILE *primesFile;
+{ float start = omp_get_wtime();
+  FILE *primesFile;
   int i=0,j=0,numResults=0;
   long int primeToTest;
   primesFile=stdin;
@@ -64,17 +67,20 @@ int main(int argc,char** argv)
   for (i=0;i<numPrimes;i++)
       fscanf(primesFile,"%s\n",secondHalf[i]);
   fclose(primesFile);
+  #pragma omp parallel for private(i, j, strToTest, primeToTest) num_threads(THREAD_NUM)
   for (i=0;i<numPrimes;i++)
 	  for (j=0;j<numPrimes;j++)
 	      { strcpy(strToTest,firstHalf[i]);
 	        strcat(strToTest,secondHalf[j]);
 			primeToTest=atol(strToTest);
-			if (isprime(primeToTest)) 
+			if (isprime(primeToTest))
+  #pragma omp critical
 			   { result[numResults++]=primeToTest;
 			   }
 	      }
   quicksort(result,0,numResults-1);
   for (i=0;i<numResults;i++)
       printf("%ld\n",result[i]);	  
+  printf("Tempo %f\n", omp_get_wtime() - start);
   return 0;
 }
