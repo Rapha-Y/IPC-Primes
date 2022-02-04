@@ -49,7 +49,9 @@ void quicksort(long int *primes,int first,int last)
        temp=primes[pivot];
        primes[pivot]=primes[j];
        primes[j]=temp;
+       #pragma omp task
        quicksort(primes,first,j-1);
+       #pragma omp task
        quicksort(primes,j+1,last);
      }
 }
